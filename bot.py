@@ -80,9 +80,9 @@ def hello(*args):
 def search_address_book(search_text: str):
     results = []
     for record in address_book.data.values():
-        name_str = str(record.name)
+        name_str = str(record.name).lower()
         phone_str = ";".join(str(phone) for phone in record.phones)
-        if search_text.lower() in name_str.lower() or search_text in phone_str:
+        if search_text.lower() in name_str or search_text in phone_str:
             results.append(str(record))
     if results:
         return "Results:\n" + "\n".join(results)
