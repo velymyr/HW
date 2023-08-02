@@ -1,4 +1,5 @@
 from address_book import AddressBook, Record, Name, Phone, Birthday
+import csv
 address_book = AddressBook()
 
 
@@ -67,6 +68,8 @@ def show_all(*args):
 
 
 def exit(*args):
+    address_book.save_to_file('data.csv')
+    address_book.save_to_file_pickle('data.pickle')
     return "Good bye!"
 
 
@@ -74,7 +77,23 @@ def hello(*args):
     return "How can I help you?"
 
 
+def load_address_book(filename):
+    with open(filename, "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            name = Name(row[0])
+            phones = [Phone(phone) for phone in row[1].split("|")]
+            birthday = Birthday(row[2]) if row[2] else None
+            record = Record(name)
+            record.add_phones(phones)
+            record.add_birthday(birthday)
+            address_book.add_record(record)
+        return address_book
+
+
 def main():
+    filename = 'data.csv'
+    load_address_book(filename)
     while True:
         user_input = input(">>> ")
         if user_input:
@@ -113,25 +132,6 @@ def parser(text: str) -> tuple[callable, tuple[str] | None]:
                 data = text[len(keyword):].strip().split()
                 return cmd, data
     return no_command, []
-
-
-def parserX(text: str) -> tuple[callable, tuple[str] | None]:
-    lower_text = text.lower()
-
-    if lower_text.startswith("add"):
-        return add_contact, lower_text.replace("add", "").strip().split()
-    elif lower_text.startswith("hello"):
-        return hello, "How can I help you?"
-    elif lower_text.startswith("close") or lower_text.startswith("exit") or lower_text.startswith("good bye"):
-        return exit, "Good bye!"
-    elif lower_text.startswith("show all"):
-        return show_all, 'show all'
-    elif lower_text.startswith("phone"):
-        return get_phone, text.replace("phone", "").strip().split()
-    elif lower_text.startswith("change"):
-        return change_phone, text.replace("change", "").strip().split()
-    else:
-        return no_command, ''
 
 
 if __name__ == "__main__":

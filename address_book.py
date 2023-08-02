@@ -2,6 +2,8 @@ from collections import UserDict
 from collections.abc import Iterator
 from datetime import datetime, date
 import re
+import pickle
+import csv
 
 
 class Field:
@@ -53,7 +55,7 @@ class Phone(Field):
     def validate(self, value):
         # +380441234567; +38(044)1234567; +38(044)123-45-67; 0441234567;
         # 044-123-4567; (073)123-4567; (099)123-4567
-        regex = r'^(?:\+38)?(?:\(\d{3}\)[0-9]{3}-?[0-9]{2}-?[0-9]{2}|044-?[0-9]{3}-?[0-9]{2}-?[0-9]{2})$'
+        regex = r"^(?:\+38)?(?:\(\d{3}\)[0-9]{3}-?[0-9]{2}-?[0-9]{2}|0\d{2}-?[0-9]{3}-?[0-9]{2}-?[0-9]{2})$"
         if not re.findall(regex, value, re.M):
             print("Invalid phone number format")
             raise ValueError
@@ -96,6 +98,13 @@ class Record:
         if self.phones is None:
             self.phones = []
         self.phones.append(phone)
+
+    def add_phones(self, phones):
+        if self.phones is None:
+            self.phones = phones
+            return
+        for phone in phones:
+            self.phones.append(phone)
 
     def remove_phone(self, phone: Phone):
         if phone not in self.phones:
@@ -158,3 +167,35 @@ class AddressBook(UserDict):
             return item
         else:
             raise StopIteration
+
+    def save_to_file_pickle(self, file_path):
+        with open(file_path, "wb") as fh:
+            pickle.dump(self.data, fh)
+
+    def load_from_file_pickle(self, file_path):
+        with open(file_path, "rb") as fh:
+            data = pickle.load(fh)
+            self.data.update(data)
+
+    def save_to_file(self, file_path):
+        with open(file_path, "w", newline="") as file:
+            writer = csv.writer(file)
+            print(self.data)
+            for rec in self.data.values():
+                print(rec)
+                name = rec.name.value
+                phones = [phone.value for phone in rec.phones]
+                birthday = rec.birthdate.value.strftime(
+                    "%Y-%m-%d") if rec.birthdate else ""
+                writer.writerow([name, "|".join(phones), birthday])
+
+    def load_from_file(self, file_path):
+        with open(file_path, "r") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                print(row)
+
+
+if __name__ == "__main__":
+    ad = AddressBook()
+    ad.load_from_file("data.csv")
