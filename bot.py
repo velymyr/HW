@@ -76,6 +76,18 @@ def exit(*args):
 def hello(*args):
     return "How can I help you?"
 
+@input_error
+def search_address_book(search_text: str):
+    results = []
+    for record in address_book.data.values():
+        name_str = str(record.name)
+        phone_str = ";".join(str(phone) for phone in record.phones)
+        if search_text.lower() in name_str.lower() or search_text in phone_str:
+            results.append(str(record))
+    if results:
+        return "Results:\n" + "\n".join(results)
+    else:
+        return "No results."
 
 def load_address_book(filename):
     with open(filename, "r") as f:
@@ -119,6 +131,7 @@ COMMANDS = {
     get_phone: ("phone",),
     change_phone: ("change",),
     remove_phone: ("remove",),
+    search_address_book: ("search",),
     show_all: ("show all",),
     exit: ("close", "exit", "good bye"),
 }
